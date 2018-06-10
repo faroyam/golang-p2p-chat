@@ -33,7 +33,7 @@ SERVER:
 				fmt.Println("Connection failed!")
 				continue SERVER
 			case message != "":
-				fmt.Println(time.Now().Format("15:4:5:"), message[:])
+				fmt.Println(time.Now().Format("15:04:05 "), message)
 				fmt.Print(prompt)
 			}
 		}
