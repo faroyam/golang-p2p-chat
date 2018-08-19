@@ -107,8 +107,10 @@ func read(m chan message, username string) {
 	for {
 		fmt.Print(">>")
 		if text, _ := reader.ReadString('\n'); text != "" {
-			msg.Text = strings.TrimSpace(text)
-			m <- msg
+			if text != "\n" {
+				msg.Text = strings.TrimSpace(text)
+				m <- msg
+			}
 		}
 	}
 }
