@@ -2,10 +2,10 @@ package main
 
 import (
 	"bufio"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"log"
-	"net"
 	"os"
 	"strings"
 	"sync"
@@ -13,6 +13,18 @@ import (
 )
 
 func main() {
+	certSender, err := tls.LoadX509KeyPair("certs/client.pem", "certs/client.key")
+	if err != nil {
+		log.Fatalf("client: loadkeys: %s", err)
+	}
+	configSender := tls.Config{Certificates: []tls.Certificate{certSender}, InsecureSkipVerify: true}
+
+	certListener, err := tls.LoadX509KeyPair("certs/server.pem", "certs/server.key")
+	if err != nil {
+		log.Fatalf("server: loadkeys: %s", err)
+	}
+	configListener := tls.Config{Certificates: []tls.Certificate{certListener}}
+
 	if len(os.Args) < 3 {
 		fmt.Println("first argument ia username\nsecond argument is remote ip addr")
 		return
@@ -25,8 +37,8 @@ func main() {
 
 	fmt.Printf("Welcome, %s\nREMOTE: %s\n", username, remoteAddr)
 
-	go server(&wg, c)
-	go send(remoteAddr, m, c)
+	go listener(&configListener, &wg, c)
+	go sender(remoteAddr, &configSender, m, c)
 	go read(m, username)
 	wg.Add(1)
 
@@ -38,11 +50,11 @@ type message struct {
 	Text     string `json:"text"`
 }
 
-func server(wg *sync.WaitGroup, c chan bool) {
+func listener(config *tls.Config, wg *sync.WaitGroup, c chan bool) {
 	defer wg.Done()
-	ln, err := net.Listen("tcp", ":49228")
+	ln, err := tls.Listen("tcp", ":49228", config)
 	if err != nil {
-		log.Println("Starting listener error!")
+		log.Println("Starting listener error!", err)
 		return
 	}
 	defer ln.Close()
@@ -71,11 +83,10 @@ func server(wg *sync.WaitGroup, c chan bool) {
 	}
 }
 
-func send(remoteAddr string, m chan message, c chan bool) {
+func sender(remoteAddr string, config *tls.Config, m chan message, c chan bool) {
 CONNECTION:
 	for {
-		conn, err := net.Dial("tcp", remoteAddr+":49228")
-
+		conn, err := tls.Dial("tcp", remoteAddr+":49228", config)
 		if err != nil {
 			log.Println("Connecting...")
 			time.Sleep(3 * time.Second)
@@ -107,8 +118,10 @@ func read(m chan message, username string) {
 	for {
 		fmt.Print(">>")
 		if text, _ := reader.ReadString('\n'); text != "" {
-			msg.Text = strings.TrimSpace(text)
-			m <- msg
+			if text != "\n" {
+				msg.Text = strings.TrimSpace(text)
+				m <- msg
+			}
 		}
 	}
 }
