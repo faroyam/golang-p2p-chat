@@ -47,6 +47,7 @@ func server(wg *sync.WaitGroup, c chan bool) {
 	}
 	defer ln.Close()
 	for {
+		fmt.Print("\n")
 		log.Println("Listening...")
 		conn, err := ln.Accept()
 		if err != nil {
