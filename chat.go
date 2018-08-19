@@ -14,7 +14,7 @@ import (
 
 func main() {
 	if len(os.Args) < 3 {
-		log.Println("first argument ia username\nsecond argument is remote ip addr")
+		fmt.Println("first argument ia username\nsecond argument is remote ip addr")
 		return
 	}
 	username := os.Args[1]
@@ -40,9 +40,10 @@ type message struct {
 
 func server(wg *sync.WaitGroup, c chan bool) {
 	defer wg.Done()
-	ln, err := net.Listen("tcp", ":8081")
+	ln, err := net.Listen("tcp", ":49228")
 	if err != nil {
-		log.Println(err)
+		log.Println("Starting listener error!")
+		return
 	}
 	defer ln.Close()
 	for {
@@ -72,7 +73,7 @@ func server(wg *sync.WaitGroup, c chan bool) {
 func send(remoteAddr string, m chan message, c chan bool) {
 CONNECTION:
 	for {
-		conn, err := net.Dial("tcp", remoteAddr+":8081")
+		conn, err := net.Dial("tcp", remoteAddr+":49228")
 
 		if err != nil {
 			log.Println("Connecting...")
