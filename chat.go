@@ -26,7 +26,7 @@ func main() {
 	configListener := tls.Config{Certificates: []tls.Certificate{certListener}}
 
 	if len(os.Args) < 3 {
-		fmt.Println("first argument ia username\nsecond argument is remote ip addr")
+		fmt.Println("first argument is your username\nsecond argument is remote ip addr")
 		return
 	}
 	username := os.Args[1]
@@ -117,11 +117,10 @@ func read(m chan message, username string) {
 	var msg = message{Username: username}
 	for {
 		fmt.Print(">>")
-		if text, _ := reader.ReadString('\n'); text != "" {
-			if text != "\n" {
-				msg.Text = strings.TrimSpace(text)
-				m <- msg
-			}
+		if text, _ := reader.ReadString('\n'); text != "\n" {
+
+			msg.Text = strings.TrimSpace(text)
+			m <- msg
 		}
 	}
 }
