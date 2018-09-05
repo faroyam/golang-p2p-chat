@@ -40,7 +40,7 @@ func main() {
 	go listener(&configListener, &wg, c)
 	go sender(remoteAddr, &configSender, m, c)
 	go read(m, username)
-	wg.Add(1)
+	wg.Add(3)
 
 	wg.Wait()
 }
